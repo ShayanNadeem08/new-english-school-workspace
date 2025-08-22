@@ -4,6 +4,7 @@ import { StudentCard } from './StudentCard';
 import { StudentModal } from './StudentModal';
 import { AddStudentModal } from './AddStudentModal';
 import { PromotionProgress } from './PromotionProgress';
+import { PromotionConfirmDialog } from './PromotionConfirmDialog';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -12,6 +13,7 @@ interface Student {
   name: string;
   fatherName: string;
   class: string;
+  section: 'boys' | 'girls';
   gender: 'male' | 'female';
   adNo: string;
   image?: string;
@@ -21,13 +23,14 @@ interface Student {
   fatherIdNo?: string;
 }
 
-// Updated student data with gender and single class structure
+// Updated student data with section-based structure
 const mockStudents: Student[] = [
   {
     id: 1,
     name: "Ahmed Ali",
     fatherName: "Muhammad Ali",
     class: "5",
+    section: "boys" as const,
     gender: "male" as const,
     adNo: "001",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmed",
@@ -41,6 +44,7 @@ const mockStudents: Student[] = [
     name: "Fatima Khan",
     fatherName: "Hassan Khan",
     class: "5",
+    section: "girls" as const,
     gender: "female" as const,
     adNo: "002",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Fatima",
@@ -54,6 +58,7 @@ const mockStudents: Student[] = [
     name: "Muhammad Hassan",
     fatherName: "Ali Hassan",
     class: "6",
+    section: "boys" as const,
     gender: "male" as const,
     adNo: "003",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Hassan",
@@ -67,6 +72,7 @@ const mockStudents: Student[] = [
     name: "Aisha Malik",
     fatherName: "Omar Malik",
     class: "6",
+    section: "girls" as const,
     gender: "female" as const,
     adNo: "004",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aisha",
@@ -80,6 +86,7 @@ const mockStudents: Student[] = [
     name: "Ali Raza",
     fatherName: "Imran Raza",
     class: "7",
+    section: "boys" as const,
     gender: "male" as const,
     adNo: "005",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=AliRaza",
@@ -93,6 +100,7 @@ const mockStudents: Student[] = [
     name: "Zara Ahmed",
     fatherName: "Tariq Ahmed",
     class: "7",
+    section: "girls" as const,
     gender: "female" as const,
     adNo: "006",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Zara",
@@ -106,6 +114,7 @@ const mockStudents: Student[] = [
     name: "Omar Shahid",
     fatherName: "Shahid Ahmed",
     class: "8",
+    section: "boys" as const,
     gender: "male" as const,
     adNo: "007",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Omar",
@@ -119,6 +128,7 @@ const mockStudents: Student[] = [
     name: "Mariam Shah",
     fatherName: "Shah Ali",
     class: "8",
+    section: "girls" as const,
     gender: "female" as const,
     adNo: "008",
     image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mariam",
@@ -130,13 +140,21 @@ const mockStudents: Student[] = [
 ];
 
 const sidebarItems = [
-  { name: 'Dashboard', icon: BarChart3, active: true },
-  { name: 'Class 5', icon: BookOpen, active: false },
-  { name: 'Class 6', icon: BookOpen, active: false },
-  { name: 'Class 7', icon: BookOpen, active: false },
-  { name: 'Class 8', icon: BookOpen, active: false },
-  { name: 'Reports', icon: BarChart3, active: false },
-  { name: 'Settings', icon: Settings, active: false }
+  { name: 'Dashboard', icon: BarChart3, key: 'dashboard' },
+  { name: '5 Boys', icon: BookOpen, key: '5-boys' },
+  { name: '5 Girls', icon: BookOpen, key: '5-girls' },
+  { name: '6 Boys', icon: BookOpen, key: '6-boys' },
+  { name: '6 Girls', icon: BookOpen, key: '6-girls' },
+  { name: '7 Boys', icon: BookOpen, key: '7-boys' },
+  { name: '7 Girls', icon: BookOpen, key: '7-girls' },
+  { name: '8 Boys', icon: BookOpen, key: '8-boys' },
+  { name: '8 Girls', icon: BookOpen, key: '8-girls' },
+  { name: '9 Boys', icon: BookOpen, key: '9-boys' },
+  { name: '9 Girls', icon: BookOpen, key: '9-girls' },
+  { name: '10 Boys', icon: BookOpen, key: '10-boys' },
+  { name: '10 Girls', icon: BookOpen, key: '10-girls' },
+  { name: 'Reports', icon: BarChart3, key: 'reports' },
+  { name: 'Settings', icon: Settings, key: 'settings' }
 ];
 
 export const Dashboard = () => {
@@ -146,19 +164,33 @@ export const Dashboard = () => {
   const [students, setStudents] = useState<Student[]>(mockStudents);
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [promotionProgress, setPromotionProgress] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('dashboard');
+  const [showPromotionDialog, setShowPromotionDialog] = useState<{
+    show: boolean;
+    student?: Student;
+    classSection?: string;
+    isClassPromotion?: boolean;
+  }>({ show: false });
 
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.class.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.fatherName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStudents = students.filter(student => {
+    // Search filter
+    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.class.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.fatherName.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Class section filter
+    if (activeFilter === 'dashboard') return matchesSearch;
+    
+    const [classNum, section] = activeFilter.split('-');
+    return matchesSearch && student.class === classNum && student.section === section;
+  });
 
   const promoteStudent = (studentId: number) => {
     setStudents(prev => prev.map(student => {
       if (student.id === studentId) {
         const currentClass = parseInt(student.class);
-        if (currentClass === 8) {
-          // Class 8 students graduate and are removed
+        if (currentClass === 10) {
+          // Class 10 students graduate and are removed
           return null;
         }
         return { ...student, class: (currentClass + 1).toString() };
@@ -167,14 +199,26 @@ export const Dashboard = () => {
     }).filter((student): student is Student => student !== null));
   };
 
-  const promoteEntireClass = (classNumber: string) => {
+  const handlePromoteStudent = (studentId: number) => {
+    const student = students.find(s => s.id === studentId);
+    if (student) {
+      setShowPromotionDialog({
+        show: true,
+        student,
+        isClassPromotion: false
+      });
+    }
+  };
+
+  const promoteEntireClass = (classSection: string) => {
     setPromotionProgress(true);
+    const [classNum, section] = classSection.split(' ');
     setTimeout(() => {
       setStudents(prev => prev.map(student => {
-        if (student.class === classNumber) {
+        if (student.class === classNum && student.section === section) {
           const currentClass = parseInt(student.class);
-          if (currentClass === 8) {
-            // Class 8 students graduate and are removed
+          if (currentClass === 10) {
+            // Class 10 students graduate and are removed
             return null;
           }
           return { ...student, class: (currentClass + 1).toString() };
@@ -183,6 +227,14 @@ export const Dashboard = () => {
       }).filter((student): student is Student => student !== null));
       setPromotionProgress(false);
     }, 2000);
+  };
+
+  const handlePromoteClass = (classSection: string) => {
+    setShowPromotionDialog({
+      show: true,
+      classSection,
+      isClassPromotion: true
+    });
   };
 
   const updateStudent = (updatedStudent: Student) => {
@@ -205,13 +257,13 @@ export const Dashboard = () => {
 
   const getClassStats = () => {
     const stats = students.reduce((acc, student) => {
-      const className = `Class ${student.class}`;
-      if (!acc[className]) {
-        acc[className] = { total: 0, boys: 0, girls: 0 };
+      const sectionKey = `${student.class} ${student.section}`;
+      if (!acc[sectionKey]) {
+        acc[sectionKey] = { total: 0, boys: 0, girls: 0 };
       }
-      acc[className].total++;
-      if (student.gender === 'male') acc[className].boys++;
-      else acc[className].girls++;
+      acc[sectionKey].total++;
+      if (student.gender === 'male') acc[sectionKey].boys++;
+      else acc[sectionKey].girls++;
       return acc;
     }, {} as any);
     
@@ -219,9 +271,18 @@ export const Dashboard = () => {
       totalStudents: students.length,
       totalBoys: students.filter(s => s.gender === 'male').length,
       totalGirls: students.filter(s => s.gender === 'female').length,
-      activeClasses: Object.keys(stats).length,
-      classBreakdown: stats
+      activeSections: Object.keys(stats).length,
+      sectionBreakdown: stats
     };
+  };
+
+  const confirmPromotion = () => {
+    if (showPromotionDialog.isClassPromotion) {
+      promoteEntireClass(showPromotionDialog.classSection!);
+    } else {
+      promoteStudent(showPromotionDialog.student!.id);
+    }
+    setShowPromotionDialog({ show: false });
   };
 
   const stats = getClassStats();
@@ -247,11 +308,12 @@ export const Dashboard = () => {
 
         {/* Navigation */}
         <nav className="flex-1 p-4">
-          <div className="space-y-2">
+            <div className="space-y-2">
             {sidebarItems.map((item) => (
               <button
-                key={item.name}
-                className={`sidebar-item w-full ${item.active ? 'active' : ''}`}
+                key={item.key}
+                onClick={() => setActiveFilter(item.key)}
+                className={`sidebar-item w-full ${activeFilter === item.key ? 'active' : ''}`}
               >
                 <item.icon className="w-5 h-5" />
                 {!sidebarCollapsed && <span className="font-medium">{item.name}</span>}
@@ -325,8 +387,8 @@ export const Dashboard = () => {
             <div className="card-student">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-muted-foreground text-sm">Active Classes</p>
-                  <p className="text-3xl font-bold text-secondary">{stats.activeClasses}</p>
+                  <p className="text-muted-foreground text-sm">Active Sections</p>
+                  <p className="text-3xl font-bold text-secondary">{stats.activeSections}</p>
                 </div>
                 <BookOpen className="w-8 h-8 text-secondary" />
               </div>
@@ -371,7 +433,7 @@ export const Dashboard = () => {
                   <StudentCard 
                     student={student} 
                     onClick={() => setSelectedStudent(student)}
-                    onPromote={() => promoteStudent(student.id)}
+                    onPromote={() => handlePromoteStudent(student.id)}
                   />
                 </div>
               ))}
@@ -393,7 +455,7 @@ export const Dashboard = () => {
           onClose={() => setSelectedStudent(null)}
           onUpdate={updateStudent}
           onRemove={removeStudent}
-          onPromote={promoteStudent}
+          onPromote={handlePromoteStudent}
         />
       )}
 
@@ -406,6 +468,16 @@ export const Dashboard = () => {
 
       {promotionProgress && (
         <PromotionProgress />
+      )}
+
+      {showPromotionDialog.show && (
+        <PromotionConfirmDialog
+          student={showPromotionDialog.student}
+          classSection={showPromotionDialog.classSection}
+          isClassPromotion={showPromotionDialog.isClassPromotion}
+          onConfirm={confirmPromotion}
+          onCancel={() => setShowPromotionDialog({ show: false })}
+        />
       )}
     </div>
   );

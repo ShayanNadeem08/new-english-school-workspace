@@ -5,6 +5,7 @@ interface Student {
   name: string;
   fatherName: string;
   class: string;
+  section: 'boys' | 'girls';
   gender: 'male' | 'female';
   adNo: string;
   image?: string;
@@ -55,7 +56,7 @@ export const StudentCard = ({ student, onClick, onPromote }: StudentCardProps) =
             {student.name}
           </h3>
           <p className="text-muted-foreground text-sm">
-            Class: {student.class} {genderIcon}
+            Class: {student.class} {student.section === 'boys' ? 'Boys' : 'Girls'} {genderIcon}
           </p>
           <p className="text-muted-foreground text-xs">
             AD.NO: {student.adNo}
@@ -69,7 +70,7 @@ export const StudentCard = ({ student, onClick, onPromote }: StudentCardProps) =
               ? 'bg-primary/10 text-primary' 
               : 'bg-secondary/10 text-secondary'
           }`}>
-            Class {student.class}
+            Class {student.class} {student.section === 'boys' ? 'Boys' : 'Girls'}
           </div>
         </div>
 

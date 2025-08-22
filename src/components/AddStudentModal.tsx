@@ -8,6 +8,7 @@ interface Student {
   name: string;
   fatherName: string;
   class: string;
+  section: 'boys' | 'girls';
   gender: 'male' | 'female';
   adNo: string;
   image?: string;
@@ -27,6 +28,7 @@ export const AddStudentModal = ({ onClose, onAdd }: AddStudentModalProps) => {
     name: '',
     fatherName: '',
     class: '5',
+    section: 'boys',
     gender: 'male',
     adNo: '',
     dob: '',
@@ -153,27 +155,33 @@ export const AddStudentModal = ({ onClose, onAdd }: AddStudentModalProps) => {
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">Class 5</SelectItem>
-                      <SelectItem value="6">Class 6</SelectItem>
-                      <SelectItem value="7">Class 7</SelectItem>
-                      <SelectItem value="8">Class 8</SelectItem>
-                    </SelectContent>
+                      <SelectContent>
+                        <SelectItem value="5">Class 5</SelectItem>
+                        <SelectItem value="6">Class 6</SelectItem>
+                        <SelectItem value="7">Class 7</SelectItem>
+                        <SelectItem value="8">Class 8</SelectItem>
+                        <SelectItem value="9">Class 9</SelectItem>
+                        <SelectItem value="10">Class 10</SelectItem>
+                      </SelectContent>
                   </Select>
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium text-foreground">Gender</label>
+                  <label className="text-sm font-medium text-foreground">Section</label>
                   <Select 
-                    value={student.gender} 
-                    onValueChange={(value: 'male' | 'female') => setStudent({ ...student, gender: value })}
+                    value={student.section} 
+                    onValueChange={(value: 'boys' | 'girls') => setStudent({ 
+                      ...student, 
+                      section: value,
+                      gender: value === 'boys' ? 'male' : 'female'
+                    })}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="male">👦 Male</SelectItem>
-                      <SelectItem value="female">👧 Female</SelectItem>
+                      <SelectItem value="boys">👦 Boys Section</SelectItem>
+                      <SelectItem value="girls">👧 Girls Section</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -10,6 +10,7 @@ interface Student {
   name: string;
   fatherName: string;
   class: string;
+  section: 'boys' | 'girls';
   gender: 'male' | 'female';
   adNo: string;
   image?: string;
@@ -128,7 +129,7 @@ export const StudentModal = ({ student, onClose, onUpdate, onRemove, onPromote }
                     : 'border-secondary text-secondary'
                 }
               >
-                Class {student.class} {genderIcon}
+                Class {student.class} {student.section === 'boys' ? 'Boys' : 'Girls'} {genderIcon}
               </Badge>
             </div>
             
@@ -165,21 +166,27 @@ export const StudentModal = ({ student, onClose, onUpdate, onRemove, onPromote }
                           <SelectItem value="6">Class 6</SelectItem>
                           <SelectItem value="7">Class 7</SelectItem>
                           <SelectItem value="8">Class 8</SelectItem>
+                          <SelectItem value="9">Class 9</SelectItem>
+                          <SelectItem value="10">Class 10</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground">Gender</label>
+                      <label className="text-sm font-medium text-foreground">Section</label>
                       <Select 
-                        value={editedStudent.gender} 
-                        onValueChange={(value: 'male' | 'female') => setEditedStudent({ ...editedStudent, gender: value })}
+                        value={editedStudent.section} 
+                        onValueChange={(value: 'boys' | 'girls') => setEditedStudent({ 
+                          ...editedStudent, 
+                          section: value,
+                          gender: value === 'boys' ? 'male' : 'female'
+                        })}
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="male">👦 Male</SelectItem>
-                          <SelectItem value="female">👧 Female</SelectItem>
+                          <SelectItem value="boys">👦 Boys Section</SelectItem>
+                          <SelectItem value="girls">👧 Girls Section</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -277,14 +284,14 @@ export const StudentModal = ({ student, onClose, onUpdate, onRemove, onPromote }
                       <span>Edit Student</span>
                     </Button>
                     
-                    {onPromote && student.class !== '8' && (
+                    {onPromote && student.class !== '10' && (
                       <Button onClick={handlePromote} className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white">
                         <ArrowUp className="w-4 h-4" />
                         <span>Promote to Class {parseInt(student.class) + 1}</span>
                       </Button>
                     )}
                     
-                    {onPromote && student.class === '8' && (
+                    {onPromote && student.class === '10' && (
                       <Button onClick={handlePromote} className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white">
                         <ArrowUp className="w-4 h-4" />
                         <span>Graduate Student</span>
