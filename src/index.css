@@ -16,38 +16,46 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 13%;
 
-    /* Vibrant teal primary #00C7B7 */
-    --primary: 174 100% 39%;
+    /* Navy blue primary #1E3A8A */
+    --primary: 217 91% 33%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 174 100% 50%;
+    --primary-glow: 217 91% 43%;
 
-    /* Rich purple secondary #6C63FF */
-    --secondary: 245 100% 70%;
+    /* Navy blue secondary #1E3A8A */
+    --secondary: 217 91% 33%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-glow: 245 100% 80%;
+    --secondary-glow: 217 91% 43%;
 
     --muted: 40 6% 93%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 174 50% 95%;
-    --accent-foreground: 174 100% 25%;
+    --accent: 217 50% 95%;
+    --accent-foreground: 217 91% 25%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 40 6% 90%;
     --input: 40 6% 90%;
-    --ring: 174 100% 39%;
+    --ring: 217 91% 33%;
 
     --radius: 0.75rem;
 
     /* Custom Design Tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(174 100% 39%), hsl(174 100% 50%));
-    --gradient-secondary: linear-gradient(135deg, hsl(245 100% 70%), hsl(245 100% 80%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(217 91% 33%),
+      hsl(217 91% 43%)
+    );
+    --gradient-secondary: linear-gradient(
+      135deg,
+      hsl(217 91% 33%),
+      hsl(217 91% 43%)
+    );
     --gradient-warm: linear-gradient(135deg, hsl(40 8% 97%), hsl(40 6% 93%));
-    
-    --shadow-soft: 0 4px 20px -4px hsl(174 100% 39% / 0.1);
-    --shadow-glow: 0 8px 32px -8px hsl(174 100% 39% / 0.3);
+
+    --shadow-soft: 0 4px 20px -4px hsl(217 91% 33% / 0.1);
+    --shadow-glow: 0 8px 32px -8px hsl(217 91% 33% / 0.3);
     --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.08);
     --shadow-modal: 0 20px 60px -10px hsl(0 0% 0% / 0.2);
 
@@ -127,7 +135,7 @@
     @apply bg-card rounded-2xl p-6 transition-all duration-300 ease-out;
     box-shadow: var(--shadow-card);
   }
-  
+
   .card-student:hover {
     @apply scale-105;
     box-shadow: var(--shadow-glow);
@@ -140,7 +148,7 @@
     box-shadow: var(--shadow-soft);
     transition: var(--transition-smooth);
   }
-  
+
   .btn-primary:hover {
     @apply scale-105;
     box-shadow: var(--shadow-glow);
@@ -165,11 +173,11 @@
     @apply flex items-center space-x-3 px-4 py-3 rounded-lg text-muted-foreground;
     transition: var(--transition-smooth);
   }
-  
+
   .sidebar-item:hover {
     @apply bg-accent text-accent-foreground;
   }
-  
+
   .sidebar-item.active {
     @apply bg-primary text-primary-foreground;
     background: var(--gradient-primary);
@@ -186,7 +194,7 @@
   .animate-fade-in {
     animation: fadeIn 0.4s ease-out;
   }
-  
+
   .animate-scale-in {
     animation: scaleIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
@@ -225,7 +233,8 @@
   }
 
   @keyframes pulse {
-    0%, 100% {
+    0%,
+    100% {
       transform: scale(1);
     }
     50% {

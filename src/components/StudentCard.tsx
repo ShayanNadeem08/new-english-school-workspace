@@ -1,18 +1,19 @@
-import { User } from 'lucide-react';
+import { User } from "lucide-react";
 
 interface Student {
   id: number;
   name: string;
   fatherName: string;
   class: string;
-  section: 'boys' | 'girls';
-  gender: 'male' | 'female';
+  section: "boys" | "girls";
+  gender: "male" | "female";
   adNo: string;
   image?: string;
   dob?: string;
-  bFormNo?: string;
-  phoneNo?: string;
-  fatherIdNo?: string;
+  b_form_no?: string;
+  phone_no?: string;
+  father_id_no?: string;
+  image_url?: string;
 }
 
 interface StudentCardProps {
@@ -21,21 +22,22 @@ interface StudentCardProps {
   onPromote?: () => void;
 }
 
-export const StudentCard = ({ student, onClick, onPromote }: StudentCardProps) => {
-  const genderIcon = student.gender === 'male' ? '👦' : '👧';
-  
+export const StudentCard = ({
+  student,
+  onClick,
+  onPromote,
+}: StudentCardProps) => {
+  const genderIcon = student.gender === "male" ? "👦" : "👧";
+
   return (
-    <div 
-      onClick={onClick}
-      className="card-student cursor-pointer group"
-    >
+    <div onClick={onClick} className="card-student cursor-pointer group">
       <div className="flex flex-col items-center text-center space-y-4">
         {/* Student Image */}
         <div className="relative">
           <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-primary flex items-center justify-center">
             {student.image ? (
-              <img 
-                src={student.image} 
+              <img
+                src={student.image}
                 alt={student.name}
                 className="w-full h-full object-cover"
               />
@@ -43,7 +45,7 @@ export const StudentCard = ({ student, onClick, onPromote }: StudentCardProps) =
               <User className="w-10 h-10 text-white" />
             )}
           </div>
-          
+
           {/* Gender indicator */}
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full border-2 border-card flex items-center justify-center text-sm">
             {genderIcon}
@@ -56,21 +58,33 @@ export const StudentCard = ({ student, onClick, onPromote }: StudentCardProps) =
             {student.name}
           </h3>
           <p className="text-muted-foreground text-sm">
-            Class: {student.class} {student.section === 'boys' ? 'Boys' : 'Girls'} {genderIcon}
+            Class: {student.class}{" "}
+            {student.section === "boys" ? "Boys" : "Girls"} {genderIcon}
           </p>
-          <p className="text-muted-foreground text-xs">
-            AD.NO: {student.adNo}
-          </p>
+          <p className="text-muted-foreground text-xs">AD.NO: {student.adNo}</p>
+          {student.phone_no && (
+            <p className="text-muted-foreground text-xs">
+              Phone: {student.phone_no}
+            </p>
+          )}
+          {student.b_form_no && (
+            <p className="text-muted-foreground text-xs">
+              B.Form: {student.b_form_no}
+            </p>
+          )}
         </div>
 
         {/* Class Badge */}
         <div className="w-full">
-          <div className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-            student.gender === 'male' 
-              ? 'bg-primary/10 text-primary' 
-              : 'bg-secondary/10 text-secondary'
-          }`}>
-            Class {student.class} {student.section === 'boys' ? 'Boys' : 'Girls'}
+          <div
+            className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
+              student.gender === "male"
+                ? "bg-primary/10 text-primary"
+                : "bg-secondary/10 text-secondary"
+            }`}
+          >
+            Class {student.class}{" "}
+            {student.section === "boys" ? "Boys" : "Girls"}
           </div>
         </div>
 

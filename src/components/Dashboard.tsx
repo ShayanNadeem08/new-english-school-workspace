@@ -1,170 +1,77 @@
-import { useState } from 'react';
-import { Search, Bell, User, BookOpen, Users, BarChart3, Settings, GraduationCap } from 'lucide-react';
-import { StudentCard } from './StudentCard';
-import { StudentModal } from './StudentModal';
-import { AddStudentModal } from './AddStudentModal';
-import { PromotionProgress } from './PromotionProgress';
-import { PromotionConfirmDialog } from './PromotionConfirmDialog';
+import { useState, useEffect, useCallback } from "react";
+import {
+  Search,
+  Bell,
+  User,
+  BookOpen,
+  Users,
+  BarChart3,
+  Settings,
+  GraduationCap,
+  Upload,
+  LogOut,
+} from "lucide-react";
+import { StudentCard } from "./StudentCard";
+import { StudentModal } from "./StudentModal";
+import { AddStudentModal } from "./AddStudentModal";
+import { PromotionProgress } from "./PromotionProgress";
+import { PromotionConfirmDialog } from "./PromotionConfirmDialog";
+import { ExcelUpload } from "./ExcelUpload";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase, Student as SupabaseStudent } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface Student {
   id: number;
+  sr_no?: number;
+  student_name: string;
+  father_name: string;
+  class: string;
+  section: "boys" | "girls";
+  ad_no: string;
+  dob?: string;
+  b_form_no?: string;
+  phone_no?: string;
+  father_id_no?: string;
+  created_at?: string;
+  updated_at?: string;
+  // Legacy fields for compatibility
   name: string;
   fatherName: string;
-  class: string;
-  section: 'boys' | 'girls';
-  gender: 'male' | 'female';
   adNo: string;
+  gender: "male" | "female";
   image?: string;
-  dob?: string;
-  bFormNo?: string;
-  phoneNo?: string;
-  fatherIdNo?: string;
 }
 
-// Updated student data with section-based structure
-const mockStudents: Student[] = [
-  {
-    id: 1,
-    name: "Ahmed Ali",
-    fatherName: "Muhammad Ali",
-    class: "5",
-    section: "boys" as const,
-    gender: "male" as const,
-    adNo: "001",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmed",
-    dob: "2014-05-15",
-    bFormNo: "35201-1234567-8",
-    phoneNo: "+92-300-1234567",
-    fatherIdNo: "35201-9876543-2"
-  },
-  {
-    id: 2,
-    name: "Fatima Khan",
-    fatherName: "Hassan Khan",
-    class: "5",
-    section: "girls" as const,
-    gender: "female" as const,
-    adNo: "002",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Fatima",
-    dob: "2014-03-22",
-    bFormNo: "35201-2345678-9",
-    phoneNo: "+92-301-2345678",
-    fatherIdNo: "35201-8765432-1"
-  },
-  {
-    id: 3,
-    name: "Muhammad Hassan",
-    fatherName: "Ali Hassan",
-    class: "6",
-    section: "boys" as const,
-    gender: "male" as const,
-    adNo: "003",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Hassan",
-    dob: "2013-08-10",
-    bFormNo: "35201-3456789-0",
-    phoneNo: "+92-302-3456789",
-    fatherIdNo: "35201-7654321-0"
-  },
-  {
-    id: 4,
-    name: "Aisha Malik",
-    fatherName: "Omar Malik",
-    class: "6",
-    section: "girls" as const,
-    gender: "female" as const,
-    adNo: "004",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aisha",
-    dob: "2013-12-05",
-    bFormNo: "35201-4567890-1",
-    phoneNo: "+92-303-4567890",
-    fatherIdNo: "35201-6543210-9"
-  },
-  {
-    id: 5,
-    name: "Ali Raza",
-    fatherName: "Imran Raza",
-    class: "7",
-    section: "boys" as const,
-    gender: "male" as const,
-    adNo: "005",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=AliRaza",
-    dob: "2012-06-18",
-    bFormNo: "35201-5678901-2",
-    phoneNo: "+92-304-5678901",
-    fatherIdNo: "35201-5432109-8"
-  },
-  {
-    id: 6,
-    name: "Zara Ahmed",
-    fatherName: "Tariq Ahmed",
-    class: "7",
-    section: "girls" as const,
-    gender: "female" as const,
-    adNo: "006",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Zara",
-    dob: "2012-09-30",
-    bFormNo: "35201-6789012-3",
-    phoneNo: "+92-305-6789012",
-    fatherIdNo: "35201-4321098-7"
-  },
-  {
-    id: 7,
-    name: "Omar Shahid",
-    fatherName: "Shahid Ahmed",
-    class: "8",
-    section: "boys" as const,
-    gender: "male" as const,
-    adNo: "007",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Omar",
-    dob: "2011-04-12",
-    bFormNo: "35201-7890123-4",
-    phoneNo: "+92-306-7890123",
-    fatherIdNo: "35201-3210987-6"
-  },
-  {
-    id: 8,
-    name: "Mariam Shah",
-    fatherName: "Shah Ali",
-    class: "8",
-    section: "girls" as const,
-    gender: "female" as const,
-    adNo: "008",
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mariam",
-    dob: "2011-07-25",
-    bFormNo: "35201-8901234-5",
-    phoneNo: "+92-307-8901234",
-    fatherIdNo: "35201-2109876-5"
-  }
-];
+// Mock data removed - now using real data from Supabase
 
 const sidebarItems = [
-  { name: 'Dashboard', icon: BarChart3, key: 'dashboard' },
-  { name: '5 Boys', icon: BookOpen, key: '5-boys' },
-  { name: '5 Girls', icon: BookOpen, key: '5-girls' },
-  { name: '6 Boys', icon: BookOpen, key: '6-boys' },
-  { name: '6 Girls', icon: BookOpen, key: '6-girls' },
-  { name: '7 Boys', icon: BookOpen, key: '7-boys' },
-  { name: '7 Girls', icon: BookOpen, key: '7-girls' },
-  { name: '8 Boys', icon: BookOpen, key: '8-boys' },
-  { name: '8 Girls', icon: BookOpen, key: '8-girls' },
-  { name: '9 Boys', icon: BookOpen, key: '9-boys' },
-  { name: '9 Girls', icon: BookOpen, key: '9-girls' },
-  { name: '10 Boys', icon: BookOpen, key: '10-boys' },
-  { name: '10 Girls', icon: BookOpen, key: '10-girls' },
-  { name: 'Reports', icon: BarChart3, key: 'reports' },
-  { name: 'Settings', icon: Settings, key: 'settings' }
+  { name: "Dashboard", icon: BarChart3, key: "dashboard" },
+  { name: "Upload Data", icon: Upload, key: "upload" },
+  { name: "5 Boys", icon: BookOpen, key: "5-boys" },
+  { name: "5 Girls", icon: BookOpen, key: "5-girls" },
+  { name: "6 Boys", icon: BookOpen, key: "6-boys" },
+  { name: "6 Girls", icon: BookOpen, key: "6-girls" },
+  { name: "7 Boys", icon: BookOpen, key: "7-boys" },
+  { name: "7 Girls", icon: BookOpen, key: "7-girls" },
+  { name: "8 Boys", icon: BookOpen, key: "8-boys" },
+  { name: "8 Girls", icon: BookOpen, key: "8-girls" },
+  { name: "Reports", icon: BarChart3, key: "reports" },
+  { name: "Settings", icon: Settings, key: "settings" },
 ];
 
 export const Dashboard = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const { user, signOut } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [students, setStudents] = useState<Student[]>(mockStudents);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [promotionProgress, setPromotionProgress] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('dashboard');
+  const [activeFilter, setActiveFilter] = useState("dashboard");
   const [showPromotionDialog, setShowPromotionDialog] = useState<{
     show: boolean;
     student?: Student;
@@ -172,59 +79,133 @@ export const Dashboard = () => {
     isClassPromotion?: boolean;
   }>({ show: false });
 
-  const filteredStudents = students.filter(student => {
+  // Fetch students from Supabase
+  const fetchStudents = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("students")
+        .select("*")
+        .order("class", { ascending: true })
+        .order("student_name", { ascending: true });
+
+      if (error) {
+        toast.error("Failed to fetch students: " + error.message);
+        return;
+      }
+
+      // Convert Supabase data to our Student interface
+      const convertedStudents: Student[] = (data || []).map(
+        (student: SupabaseStudent) => ({
+          id: student.id || 0,
+          sr_no: student.sr_no,
+          student_name: student.student_name,
+          father_name: student.father_name,
+          class: student.class,
+          section: student.section,
+          ad_no: student.ad_no,
+          dob: student.dob,
+          b_form_no: student.b_form_no,
+          phone_no: student.phone_no,
+          father_id_no: student.father_id_no,
+          created_at: student.created_at,
+          updated_at: student.updated_at,
+          image_url: student.image_url,
+          // Legacy fields for compatibility
+          name: student.student_name,
+          fatherName: student.father_name,
+          adNo: student.ad_no,
+          gender: student.section === "boys" ? "male" : "female",
+          image:
+            student.image_url ||
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+              student.student_name
+            )}`,
+        })
+      );
+
+      setStudents(convertedStudents);
+    } catch (error) {
+      toast.error("An error occurred while fetching students");
+      console.error("Error fetching students:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out successfully");
+  };
+
+  const filteredStudents = students.filter((student) => {
     // Search filter
-    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.class.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.fatherName.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // Class section filter
-    if (activeFilter === 'dashboard') return matchesSearch;
-    
-    const [classNum, section] = activeFilter.split('-');
-    return matchesSearch && student.class === classNum && student.section === section;
+    if (activeFilter === "dashboard") return matchesSearch;
+
+    const [classNum, section] = activeFilter.split("-");
+    return (
+      matchesSearch && student.class === classNum && student.section === section
+    );
   });
 
   const promoteStudent = (studentId: number) => {
-    setStudents(prev => prev.map(student => {
-      if (student.id === studentId) {
-        const currentClass = parseInt(student.class);
-        if (currentClass === 10) {
-          // Class 10 students graduate and are removed
-          return null;
-        }
-        return { ...student, class: (currentClass + 1).toString() };
-      }
-      return student;
-    }).filter((student): student is Student => student !== null));
+    setStudents((prev) =>
+      prev
+        .map((student) => {
+          if (student.id === studentId) {
+            const currentClass = parseInt(student.class);
+            if (currentClass === 10) {
+              // Class 10 students graduate and are removed
+              return null;
+            }
+            return { ...student, class: (currentClass + 1).toString() };
+          }
+          return student;
+        })
+        .filter((student): student is Student => student !== null)
+    );
   };
 
   const handlePromoteStudent = (studentId: number) => {
-    const student = students.find(s => s.id === studentId);
+    const student = students.find((s) => s.id === studentId);
     if (student) {
       setShowPromotionDialog({
         show: true,
         student,
-        isClassPromotion: false
+        isClassPromotion: false,
       });
     }
   };
 
   const promoteEntireClass = (classSection: string) => {
     setPromotionProgress(true);
-    const [classNum, section] = classSection.split(' ');
+    const [classNum, section] = classSection.split(" ");
     setTimeout(() => {
-      setStudents(prev => prev.map(student => {
-        if (student.class === classNum && student.section === section) {
-          const currentClass = parseInt(student.class);
-          if (currentClass === 10) {
-            // Class 10 students graduate and are removed
-            return null;
-          }
-          return { ...student, class: (currentClass + 1).toString() };
-        }
-        return student;
-      }).filter((student): student is Student => student !== null));
+      setStudents((prev) =>
+        prev
+          .map((student) => {
+            if (student.class === classNum && student.section === section) {
+              const currentClass = parseInt(student.class);
+              if (currentClass === 10) {
+                // Class 10 students graduate and are removed
+                return null;
+              }
+              return { ...student, class: (currentClass + 1).toString() };
+            }
+            return student;
+          })
+          .filter((student): student is Student => student !== null)
+      );
       setPromotionProgress(false);
     }, 2000);
   };
@@ -233,26 +214,28 @@ export const Dashboard = () => {
     setShowPromotionDialog({
       show: true,
       classSection,
-      isClassPromotion: true
+      isClassPromotion: true,
     });
   };
 
   const updateStudent = (updatedStudent: Student) => {
-    setStudents(prev => prev.map(student => 
-      student.id === updatedStudent.id ? updatedStudent : student
-    ));
+    setStudents((prev) =>
+      prev.map((student) =>
+        student.id === updatedStudent.id ? updatedStudent : student
+      )
+    );
   };
 
   const removeStudent = (studentId: number) => {
-    setStudents(prev => prev.filter(student => student.id !== studentId));
+    setStudents((prev) => prev.filter((student) => student.id !== studentId));
   };
 
-  const addStudent = (newStudent: Omit<Student, 'id'>) => {
+  const addStudent = (newStudent: Omit<Student, "id">) => {
     const student: Student = {
       ...newStudent,
-      id: Math.max(...students.map(s => s.id)) + 1
+      id: Math.max(...students.map((s) => s.id)) + 1,
     };
-    setStudents(prev => [...prev, student]);
+    setStudents((prev) => [...prev, student]);
   };
 
   const getClassStats = () => {
@@ -262,17 +245,17 @@ export const Dashboard = () => {
         acc[sectionKey] = { total: 0, boys: 0, girls: 0 };
       }
       acc[sectionKey].total++;
-      if (student.gender === 'male') acc[sectionKey].boys++;
+      if (student.gender === "male") acc[sectionKey].boys++;
       else acc[sectionKey].girls++;
       return acc;
-    }, {} as any);
-    
+    }, {} as Record<string, { total: number; boys: number; girls: number }>);
+
     return {
       totalStudents: students.length,
-      totalBoys: students.filter(s => s.gender === 'male').length,
-      totalGirls: students.filter(s => s.gender === 'female').length,
+      totalBoys: students.filter((s) => s.gender === "male").length,
+      totalGirls: students.filter((s) => s.gender === "female").length,
       activeSections: Object.keys(stats).length,
-      sectionBreakdown: stats
+      sectionBreakdown: stats,
     };
   };
 
@@ -290,16 +273,22 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-card border-r border-border transition-all duration-300 flex flex-col`}>
+      <div
+        className={`${
+          sidebarCollapsed ? "w-16" : "w-64"
+        } bg-card border-r border-border transition-all duration-300 flex flex-col`}
+      >
         {/* Logo */}
         <div className="p-6 border-b border-border">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-white" />
-            </div>
+            <img
+              src="/logo/new-english-logo.svg"
+              alt="New English Model School Logo"
+              className="w-10 h-10"
+            />
             {!sidebarCollapsed && (
               <div>
-                <h1 className="font-bold text-lg text-foreground">NEMHS</h1>
+                <h1 className="font-bold text-lg text-foreground">NEMS</h1>
                 <p className="text-xs text-muted-foreground">Student Portal</p>
               </div>
             )}
@@ -308,15 +297,19 @@ export const Dashboard = () => {
 
         {/* Navigation */}
         <nav className="flex-1 p-4">
-            <div className="space-y-2">
+          <div className="space-y-2">
             {sidebarItems.map((item) => (
               <button
                 key={item.key}
                 onClick={() => setActiveFilter(item.key)}
-                className={`sidebar-item w-full ${activeFilter === item.key ? 'active' : ''}`}
+                className={`sidebar-item w-full ${
+                  activeFilter === item.key ? "active" : ""
+                }`}
               >
                 <item.icon className="w-5 h-5" />
-                {!sidebarCollapsed && <span className="font-medium">{item.name}</span>}
+                {!sidebarCollapsed && (
+                  <span className="font-medium">{item.name}</span>
+                )}
               </button>
             ))}
           </div>
@@ -324,13 +317,13 @@ export const Dashboard = () => {
 
         {/* Collapse Toggle */}
         <div className="p-4 border-t border-border">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="w-full"
           >
-            {sidebarCollapsed ? '→' : '←'}
+            {sidebarCollapsed ? "→" : "←"}
           </Button>
         </div>
       </div>
@@ -341,9 +334,12 @@ export const Dashboard = () => {
         <header className="bg-card border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h2 className="text-2xl font-bold text-foreground">Student Dashboard</h2>
+              <div className="h-8 w-px bg-border mx-4"></div>
+              <h2 className="text-2xl font-bold text-foreground">
+                Student Dashboard
+              </h2>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {/* Search */}
               <div className="relative">
@@ -355,103 +351,141 @@ export const Dashboard = () => {
                   className="search-expand pl-10 bg-background"
                 />
               </div>
-              
-              {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full"></span>
-              </Button>
-              
               {/* Profile */}
-              <Button variant="ghost" size="icon">
-                <User className="w-5 h-5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground hidden md:block">
+                  {user?.email}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSignOut}
+                  title="Sign Out"
+                >
+                  <LogOut className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Main Dashboard Content */}
         <main className="flex-1 p-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="card-student">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm">Total Students</p>
-                  <p className="text-3xl font-bold text-primary">{stats.totalStudents}</p>
+          {activeFilter === "upload" ? (
+            <ExcelUpload onDataUploaded={fetchStudents} />
+          ) : (
+            <>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="card-student">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-sm">
+                        Total Students
+                      </p>
+                      <p className="text-3xl font-bold text-primary">
+                        {stats.totalStudents}
+                      </p>
+                    </div>
+                    <Users className="w-8 h-8 text-primary" />
+                  </div>
                 </div>
-                <Users className="w-8 h-8 text-primary" />
-              </div>
-            </div>
-            
-            <div className="card-student">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm">Active Sections</p>
-                  <p className="text-3xl font-bold text-secondary">{stats.activeSections}</p>
-                </div>
-                <BookOpen className="w-8 h-8 text-secondary" />
-              </div>
-            </div>
-            
-            <div className="card-student">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm">Boys</p>
-                  <p className="text-3xl font-bold text-primary">{stats.totalBoys}</p>
-                </div>
-                <GraduationCap className="w-8 h-8 text-primary" />
-              </div>
-            </div>
-            
-            <div className="card-student">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm">Girls</p>
-                  <p className="text-3xl font-bold text-secondary">{stats.totalGirls}</p>
-                </div>
-                <GraduationCap className="w-8 h-8 text-secondary" />
-              </div>
-            </div>
-          </div>
 
-          {/* Students Grid */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-foreground">Recent Students</h3>
-              <Button 
-                className="btn-primary"
-                onClick={() => setShowAddStudent(true)}
-              >
-                Add New Student
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredStudents.map((student, index) => (
-                <div key={student.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <StudentCard 
-                    student={student} 
-                    onClick={() => setSelectedStudent(student)}
-                    onPromote={() => handlePromoteStudent(student.id)}
-                  />
+                <div className="card-student">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Boys
+                      </p>
+                      <p className="text-3xl font-bold text-primary">
+                        {stats.totalBoys}
+                      </p>
+                    </div>
+                    <GraduationCap className="w-8 h-8 text-primary" />
+                  </div>
                 </div>
-              ))}
-            </div>
-            
-            {filteredStudents.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">No students found matching your search.</p>
+
+                <div className="card-student">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Girls
+                      </p>
+                      <p className="text-3xl font-bold text-secondary">
+                        {stats.totalGirls}
+                      </p>
+                    </div>
+                    <GraduationCap className="w-8 h-8 text-secondary" />
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+
+              {/* Students Grid */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-foreground">
+                    {loading ? "Loading Students..." : "Students"}
+                  </h3>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={fetchStudents}
+                      disabled={loading}
+                    >
+                      Refresh Data
+                    </Button>
+                    <Button
+                      className="btn-primary"
+                      onClick={() => setShowAddStudent(true)}
+                    >
+                      Add New Student
+                    </Button>
+                  </div>
+                </div>
+
+                {loading ? (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground text-lg">
+                      Loading students...
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {filteredStudents.map((student, index) => (
+                        <div
+                          key={student.id}
+                          className="animate-fade-in"
+                          style={{ animationDelay: `${index * 0.1}s` }}
+                        >
+                          <StudentCard
+                            student={student}
+                            onClick={() => setSelectedStudent(student)}
+                            onPromote={() => handlePromoteStudent(student.id)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {filteredStudents.length === 0 && (
+                      <div className="text-center py-12">
+                        <p className="text-muted-foreground text-lg">
+                          No students found matching your search.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </main>
       </div>
 
       {/* Student Modal */}
       {selectedStudent && (
-        <StudentModal 
-          student={selectedStudent} 
+        <StudentModal
+          student={selectedStudent}
           onClose={() => setSelectedStudent(null)}
           onUpdate={updateStudent}
           onRemove={removeStudent}
@@ -466,9 +500,7 @@ export const Dashboard = () => {
         />
       )}
 
-      {promotionProgress && (
-        <PromotionProgress />
-      )}
+      {promotionProgress && <PromotionProgress />}
 
       {showPromotionDialog.show && (
         <PromotionConfirmDialog
