@@ -226,8 +226,25 @@ export const Dashboard = () => {
     );
   };
 
-  const removeStudent = (studentId: number) => {
-    setStudents((prev) => prev.filter((student) => student.id !== studentId));
+  const removeStudent = async (studentId: number) => {
+    try {
+      const student = students.find((s) => s.id === studentId);
+      const { error } = await supabase
+        .from("students")
+        .delete()
+        .eq("id", studentId);
+
+      if (error) {
+        toast.error("Failed to remove student: " + error.message);
+        return;
+      }
+
+      setStudents((prev) => prev.filter((student) => student.id !== studentId));
+      toast.success(`${student?.name ?? "Student"} removed`);
+    } catch (err) {
+      toast.error("An error occurred while removing the student");
+      console.error("Remove student error:", err);
+    }
   };
 
   const addStudent = (newStudent: Omit<Student, "id">) => {
